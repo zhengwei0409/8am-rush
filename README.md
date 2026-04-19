@@ -16,6 +16,16 @@ The game clock starts at **7:00 AM** and runs in real time. Reach the end of eac
 
 ---
 
+## Characters
+
+Players choose one of 3 characters before the game starts. All characters are purely cosmetic — same stats.
+
+- **CS Student**
+- **Engineering Student**
+- **Medical Student**
+
+---
+
 ## Controls
 
 | Action | Key |
@@ -38,12 +48,33 @@ The game clock starts at **7:00 AM** and runs in real time. Reach the end of eac
 
 ## Enemies
 
-Enemies follow fixed movement patterns (patrol, projectile, or drop). Contact with an enemy adds time to the clock.
+Enemies use static sprites (no animation). They follow fixed movement patterns — contact with an enemy adds time to the clock.
 
-Examples:
-- **Notification Bubble** — flies across the screen (projectile)
-- **Game Controller** — drops from above or flies across
-- **Promoter** — patrols back and forth on a platform
+| Enemy | Movement | Effect |
+|---|---|---|
+| **Notification Bubble** | flies across the screen (projectile) | +time penalty |
+| **Game Controller** | drops from above | +time penalty |
+| **Bubble Tea Cup** | patrols back and forth on a platform | +time penalty |
+
+---
+
+## Collectibles
+
+Collectibles affect **player movement speed** — arrive earlier or later depending on what you pick up.
+
+### Speed Boosts (player moves faster)
+
+| Collectible | Effect |
+|---|---|
+| **Exam Paper** | player moves faster |
+| **Breakfast** | player moves faster |
+| **Coffee** | player moves faster |
+
+### Debuffs (player moves slower)
+
+| Collectible | Effect |
+|---|---|
+| **ZZZ Icon** | player moves slower |
 
 ---
 

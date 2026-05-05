@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 
-export const GAME_DURATION_MS = 180000
+export const GAME_DURATION_MS = 90000
 export const START_HOUR = 7
 export const END_HOUR = 8
 

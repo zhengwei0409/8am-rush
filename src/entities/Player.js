@@ -1,5 +1,13 @@
 import Phaser from 'phaser'
 
+const PLAYER_SCALE = 1.95
+
+const CHARACTER_BODY_OFFSETS = {
+  cs: {
+    y: 22,
+  },
+}
+
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, characterKey = 'cs', worldScale = 1) {
     super(scene, x, y, `${characterKey}-run-1`)
@@ -11,11 +19,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.runSpeed = 300 * worldScale
     this.jumpVelocity = -700 * worldScale
 
-    this.setScale(2.05 * worldScale)
+    const bodyOffset = CHARACTER_BODY_OFFSETS[characterKey] ?? { y: 0 }
+
+    this.setScale(PLAYER_SCALE * worldScale)
     this.setDepth(10)
     this.setCollideWorldBounds(false)
     this.body.setSize(40 * worldScale, 70 * worldScale)
-    this.body.setOffset(28 * worldScale, 20 * worldScale)
+    this.body.setOffset(28 * worldScale, 20 * worldScale + bodyOffset.y)
   }
 
   start() {

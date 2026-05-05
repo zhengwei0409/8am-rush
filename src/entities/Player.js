@@ -1,30 +1,30 @@
 import Phaser from 'phaser'
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y) {
-    super(scene, x, y, 'cs-run-1')
+  constructor(scene, x, y, characterKey = 'cs', worldScale = 1) {
+    super(scene, x, y, `${characterKey}-run-1`)
 
     scene.add.existing(this)
     scene.physics.add.existing(this)
 
-    this.runSpeed = 320
-    this.jumpVelocity = -700
-    this.isAlive = true
+    this.characterKey = characterKey
+    this.runSpeed = 300 * worldScale
+    this.jumpVelocity = -700 * worldScale
 
-    this.setScale(1.05)
+    this.setScale(2.05 * worldScale)
     this.setDepth(10)
     this.setCollideWorldBounds(false)
-    this.body.setSize(40, 70)
-    this.body.setOffset(28, 20)
+    this.body.setSize(40 * worldScale, 70 * worldScale)
+    this.body.setOffset(28 * worldScale, 20 * worldScale)
   }
 
   start() {
     this.setVelocityX(this.runSpeed)
-    this.play('cs-run', true)
+    this.play(`${this.characterKey}-run`, true)
   }
 
   jump() {
-    if (!this.isAlive || !this.body.blocked.down) {
+    if (!this.body.blocked.down) {
       return
     }
 
@@ -33,14 +33,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   update() {
-    if (!this.isAlive) {
-      return
-    }
-
     this.setVelocityX(this.runSpeed)
 
     if (this.body.blocked.down) {
-      this.play('cs-run', true)
+      this.play(`${this.characterKey}-run`, true)
       return
     }
 
@@ -52,24 +48,21 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.showFallPose()
   }
 
-  defeat() {
-    this.isAlive = false
-    this.setVelocity(0, -260)
-    this.setTint(0xff5d5d)
-    this.setAngularVelocity(420)
-  }
-
   showJumpPose() {
-    if (this.texture.key !== 'cs-jump') {
+    const textureKey = `${this.characterKey}-jump`
+
+    if (this.texture.key !== textureKey) {
       this.anims.stop()
-      this.setTexture('cs-jump')
+      this.setTexture(textureKey)
     }
   }
 
   showFallPose() {
-    if (this.texture.key !== 'cs-fall') {
+    const textureKey = `${this.characterKey}-fall`
+
+    if (this.texture.key !== textureKey) {
       this.anims.stop()
-      this.setTexture('cs-fall')
+      this.setTexture(textureKey)
     }
   }
 }

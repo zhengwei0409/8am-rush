@@ -10,7 +10,13 @@ function App() {
 
     async function startGame() {
       const PhaserModule = await import('phaser')
+      const { default: StartScene } = await import('./scenes/StartScene.js')
+      const { default: CharacterSelectScene } = await import('./scenes/CharacterSelectScene.js')
+      const { default: Level1 } = await import('./scenes/Level1.js')
       const { default: Level2 } = await import('./scenes/Level2.js')
+      const { default: Level3 } = await import('./scenes/Level3.js')
+      const { default: LevelSummaryScene } = await import('./scenes/LevelSummaryScene.js')
+      const { default: ResultScene } = await import('./scenes/ResultScene.js')
       const Phaser = PhaserModule.default ?? PhaserModule
 
       if (cancelled || !gameRef.current) {
@@ -34,7 +40,15 @@ function App() {
           mode: Phaser.Scale.FIT,
           autoCenter: Phaser.Scale.CENTER_BOTH,
         },
-        scene: [Level2],
+        scene: [
+          StartScene,
+          CharacterSelectScene,
+          Level1,
+          Level2,
+          Level3,
+          LevelSummaryScene,
+          ResultScene,
+        ],
       })
     }
 
@@ -51,7 +65,7 @@ function App() {
       <header className="game-header">
         <div>
           <p className="eyebrow">8am Rush</p>
-          <h1>Level 2: MRT Station</h1>
+          <h1>Beat the 8:00 AM Bell</h1>
         </div>
         <p className="hint">Spacebar to jump</p>
       </header>

@@ -30,6 +30,8 @@ export default class BaseLevel extends Phaser.Scene {
     this.configureLevelMetrics()
     this.finished = false
     this.gameOver = false
+    this.levelStarted = false
+    this.controlsEnabled = false
     this.levelStartElapsed = this.runState.elapsedMs
     this.physics.world.gravity.y = 1600 * this.levelScale
 
@@ -43,10 +45,15 @@ export default class BaseLevel extends Phaser.Scene {
     this.createHud()
     this.createControls()
     this.configureCamera()
+    this.startLevelCountdown()
   }
 
   update(_time, delta) {
     if (this.gameOver || this.finished) {
+      return
+    }
+
+    if (!this.levelStarted) {
       return
     }
 
@@ -153,7 +160,8 @@ export default class BaseLevel extends Phaser.Scene {
       this.levelScale,
     )
     this.physics.add.collider(this.player, this.platforms)
-    this.player.start()
+    this.player.setVelocity(0, 0)
+    this.player.body.enable = false
   }
 
   createHazards() {
@@ -190,15 +198,87 @@ export default class BaseLevel extends Phaser.Scene {
 
   createControls() {
     this.input.keyboard.on('keydown-SPACE', () => {
-      if (!this.finished) {
+      if (this.canUseControls()) {
         this.player.jump()
       }
     })
 
     this.input.on('pointerdown', () => {
-      if (!this.gameOver && !this.finished) {
+      if (this.canUseControls()) {
         this.player.jump()
       }
+    })
+  }
+
+  canUseControls() {
+    return this.controlsEnabled && !this.gameOver && !this.finished
+  }
+
+  startLevelCountdown() {
+    const countdownItems = ['3', '2', '1', 'GO!']
+    let countdownIndex = 0
+
+    const shade = this.add.rectangle(
+      this.scale.width / 2,
+      this.scale.height / 2,
+      this.scale.width,
+      this.scale.height,
+      0x050913,
+      0.42,
+    ).setScrollFactor(0).setDepth(29)
+
+    const countdownText = this.add.text(
+      this.scale.width / 2,
+      this.scale.height / 2,
+      countdownItems[countdownIndex],
+      {
+        fontFamily: 'Arial',
+        fontSize: '112px',
+        fontStyle: '900',
+        color: '#ffcc48',
+        stroke: '#101622',
+        strokeThickness: 10,
+      },
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(30)
+
+    const showCountdownItem = (label) => {
+      countdownText.setText(label)
+      countdownText.setScale(0.7)
+      countdownText.setAlpha(1)
+
+      this.tweens.killTweensOf(countdownText)
+      this.tweens.add({
+        targets: countdownText,
+        scale: 1.12,
+        alpha: 0.9,
+        duration: 520,
+        ease: 'Back.Out',
+      })
+    }
+
+    const beginLevel = () => {
+      shade.destroy()
+      countdownText.destroy()
+      this.levelStarted = true
+      this.controlsEnabled = true
+      this.player.body.enable = true
+      this.player.start()
+      this.player.update()
+    }
+
+    showCountdownItem(countdownItems[countdownIndex])
+
+    this.time.addEvent({
+      delay: 800,
+      repeat: countdownItems.length - 2,
+      callback: () => {
+        countdownIndex += 1
+        showCountdownItem(countdownItems[countdownIndex])
+
+        if (countdownIndex === countdownItems.length - 1) {
+          this.time.delayedCall(520, beginLevel)
+        }
+      },
     })
   }
 

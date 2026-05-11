@@ -67,14 +67,14 @@ function App() {
         <header className="grid grid-cols-[1fr_auto] items-end gap-4 border-4 border-[#080812] bg-[#ffcc33] p-3 text-[#101022] shadow-[8px_8px_0_#000,12px_12px_0_#35d6ff] max-[720px]:grid-cols-1">
           <div className="flex items-end gap-3 max-[720px]:items-start">
             <div className="grid h-16 w-16 shrink-0 place-items-center border-4 border-[#101022] bg-[#ff3d7f] text-3xl font-black leading-none shadow-[4px_4px_0_#101022]">
-              8
+              67
             </div>
             <div>
               <p className="m-0 font-mono text-sm font-black uppercase tracking-[0.14em] text-[#1b46ff]">
-                8am Rush
+                Beat the Bell
               </p>
               <h1 className="m-0 font-mono text-[clamp(26px,4vw,48px)] font-black uppercase leading-none [text-shadow:3px_3px_0_#fff8d9]">
-                Beat the Bell
+                8am rush
               </h1>
             </div>
           </div>
@@ -92,7 +92,7 @@ function App() {
           <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3 max-[560px]:grid-cols-1">
             <div className="h-4 border-4 border-[#080812] bg-[repeating-linear-gradient(90deg,#ffcc33_0_18px,#ff3d7f_18px_36px,#35d6ff_36px_54px,#52ff7a_54px_72px)]" />
             <p className="m-0 border-4 border-[#080812] bg-[#070711] px-4 py-1 text-center font-mono text-sm font-black uppercase tracking-[0.18em] text-[#ffcc33]">
-              Campus Dash
+              Dont be late
             </p>
             <div className="h-4 border-4 border-[#080812] bg-[repeating-linear-gradient(90deg,#52ff7a_0_18px,#35d6ff_18px_36px,#ff3d7f_36px_54px,#ffcc33_54px_72px)]" />
           </div>

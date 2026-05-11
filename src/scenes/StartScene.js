@@ -1,137 +1,121 @@
 import Phaser from 'phaser'
 
+const startBackgroundUrl = new URL('../assets/menu/Start.png', import.meta.url).href
+
 export default class StartScene extends Phaser.Scene {
   constructor() {
     super('StartScene')
   }
 
-  create() {
-    this.createPixelBackground()
+  preload() {
+    this.load.image('start-menu-background', startBackgroundUrl)
+  }
 
-    this.add.text(80, 78, '8am Rush', {
+  create() {
+    this.add.image(480, 270, 'start-menu-background')
+      .setDisplaySize(960, 540)
+
+    this.add.rectangle(480, 432, 960, 216, 0x061326, 0.28)
+
+    this.add.text(480, 380, 'WELCOME TO', {
       fontFamily: 'Arial',
-      fontSize: '68px',
+      fontSize: '22px',
       fontStyle: '900',
       color: '#ffffff',
       stroke: '#101622',
-      strokeThickness: 8,
-    })
-
-    this.add.text(84, 162, 'Run from 7:00 AM to campus before the clock hits 8:00.', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#dce8ff',
-    })
-
-    this.add.text(84, 214, 'Press Space to jump. Finish Level 3 in time to win.', {
-      fontFamily: 'Arial',
-      fontSize: '20px',
-      color: '#ffcc48',
-    })
-
-    const playButton = this.add.rectangle(480, 350, 220, 70, 0xffcc48, 1)
-      .setInteractive({ useHandCursor: true })
-    playButton.setStrokeStyle(4, 0xffffff, 0.9)
-
-    const playText = this.add.text(480, 350, 'Play', {
-      fontFamily: 'Arial',
-      fontSize: '32px',
-      fontStyle: '900',
-      color: '#101622',
+      strokeThickness: 4,
     }).setOrigin(0.5)
 
-    playButton.on('pointerover', () => playButton.setFillStyle(0xffdf72))
-    playButton.on('pointerout', () => playButton.setFillStyle(0xffcc48))
-    playButton.on('pointerdown', () => this.scene.start('CharacterSelectScene'))
+    this.add.text(480, 416, 'UNIVERSITI MALAYA', {
+      fontFamily: 'Arial',
+      fontSize: '42px',
+      fontStyle: '900',
+      color: '#ffc21f',
+      stroke: '#181016',
+      strokeThickness: 6,
+    }).setOrigin(0.5)
 
-    this.input.keyboard.on('keydown-SPACE', () => this.scene.start('CharacterSelectScene'))
+    this.add.text(38, 516, 'v1.0.0', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      fontStyle: '900',
+      color: '#ffcc48',
+      stroke: '#2d1c00',
+      strokeThickness: 3,
+    }).setOrigin(0, 0.5)
+
+    this.add.text(788, 516, 'PRESS', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      fontStyle: '900',
+      color: '#fff8d9',
+      stroke: '#101622',
+      strokeThickness: 3,
+    }).setOrigin(0.5)
+
+    const spaceKey = this.add.rectangle(846, 516, 54, 22, 0x24406c, 1)
+      .setStrokeStyle(2, 0xfff3b0, 0.95)
+    this.add.text(846, 516, 'SPACE', {
+      fontFamily: 'Arial',
+      fontSize: '13px',
+      fontStyle: '900',
+      color: '#fff8d9',
+      stroke: '#101622',
+      strokeThickness: 3,
+    }).setOrigin(0.5)
+
+    this.add.text(914, 516, 'TO START', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      fontStyle: '900',
+      color: '#fff8d9',
+      stroke: '#101622',
+      strokeThickness: 3,
+    }).setOrigin(0.5)
+
+    const startGame = () => this.scene.start('CharacterSelectScene')
+
+    this.createMenuButton(480, 470, 212, 30, 'START GAME', 0xd89100, 0xffbd1f, startGame)
+    this.createMenuButton(480, 510, 212, 30, 'EXIT GAME', 0x013b78, 0x0657a7, () => this.game.destroy(true))
+
+    this.input.keyboard.on('keydown-SPACE', startGame)
+  }
+
+  createMenuButton(x, y, width, height, label, baseColor, hoverColor, onClick) {
+    const shadow = this.add.rectangle(x + 3, y + 3, width, height, 0x0a101d, 0.95)
+    const button = this.add.rectangle(x, y, width, height, baseColor, 1)
+      .setStrokeStyle(3, 0xffe47a, 1)
+      .setInteractive({ useHandCursor: true })
+    const text = this.add.text(x - 7, y, label, {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      fontStyle: '900',
+      color: '#fff8d9',
+      stroke: '#201914',
+      strokeThickness: 4,
+    }).setOrigin(0.5)
+    const arrow = this.add.triangle(x + width / 2 - 24, y, 0, -8, 0, 8, 12, 0, 0xfff8d9)
+
+    button.on('pointerover', () => {
+      button.setFillStyle(hoverColor)
+      shadow.setAlpha(1)
+    })
+    button.on('pointerout', () => {
+      button.setFillStyle(baseColor)
+      shadow.setAlpha(0.95)
+    })
+    button.on('pointerdown', onClick)
+
     this.tweens.add({
-      targets: [playButton, playText],
-      scale: 1.04,
-      duration: 650,
+      targets: [button, text, arrow],
+      scaleX: 1.02,
+      scaleY: 1.04,
+      duration: 700,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
     })
-  }
 
-  createPixelBackground() {
-    this.add.rectangle(480, 270, 960, 540, 0x0f1728)
-
-    const graphics = this.add.graphics()
-    const tile = 12
-
-    graphics.fillStyle(0x13223a, 1)
-    graphics.fillRect(0, 0, 960, 264)
-    graphics.fillStyle(0x182b49, 1)
-    graphics.fillRect(0, 0, 960, 72)
-    graphics.fillStyle(0x203a5c, 1)
-    graphics.fillRect(0, 72, 960, 36)
-
-    graphics.fillStyle(0xffcc48, 1)
-    this.fillPixelCircle(graphics, 142, 122, 78, tile)
-    graphics.fillStyle(0xf6b834, 1)
-    this.fillPixelCircle(graphics, 122, 142, 42, tile)
-
-    graphics.fillStyle(0x0b1220, 1)
-    graphics.fillRect(0, 230, 960, 134)
-    graphics.fillStyle(0x142238, 1)
-    graphics.fillRect(0, 250, 960, 36)
-
-    const buildings = [
-      [18, 170, 84, 96, 0x1f3554],
-      [112, 138, 108, 128, 0x264361],
-      [248, 162, 132, 104, 0x1b304e],
-      [690, 136, 120, 130, 0x223c5d],
-      [826, 158, 94, 108, 0x1b304e],
-    ]
-
-    buildings.forEach(([x, y, width, height, color]) => {
-      graphics.fillStyle(color, 1)
-      graphics.fillRect(x, y, width, height)
-      graphics.fillStyle(0x89d6ff, 0.55)
-
-      for (let row = y + 18; row < y + height - 12; row += 24) {
-        for (let col = x + 14; col < x + width - 14; col += 24) {
-          graphics.fillRect(col, row, 10, 10)
-        }
-      }
-    })
-
-    graphics.fillStyle(0x1c5a70, 1)
-    graphics.fillRect(0, 364, 960, 176)
-    graphics.fillStyle(0x16495e, 1)
-    graphics.fillRect(0, 444, 960, 96)
-    graphics.fillStyle(0x24344d, 1)
-    graphics.fillRect(0, 390, 960, 24)
-    graphics.fillStyle(0x89d6ff, 0.5)
-
-    for (let x = 0; x < 960; x += 48) {
-      graphics.fillRect(x, 390, 24, 6)
-    }
-
-    graphics.fillStyle(0xffcc48, 1)
-    graphics.fillRect(794, 122, 88, 12)
-    graphics.fillRect(836, 86, 12, 82)
-
-    graphics.lineStyle(2, 0x253d61, 0.45)
-    for (let x = 0; x <= 960; x += tile) {
-      graphics.lineBetween(x, 0, x, 540)
-    }
-    for (let y = 0; y <= 540; y += tile) {
-      graphics.lineBetween(0, y, 960, y)
-    }
-  }
-
-  fillPixelCircle(graphics, centerX, centerY, radius, tile) {
-    for (let y = centerY - radius; y <= centerY + radius; y += tile) {
-      for (let x = centerX - radius; x <= centerX + radius; x += tile) {
-        const distance = Phaser.Math.Distance.Between(centerX, centerY, x + tile / 2, y + tile / 2)
-
-        if (distance <= radius) {
-          graphics.fillRect(x, y, tile, tile)
-        }
-      }
-    }
+    return button
   }
 }

@@ -1,12 +1,15 @@
 import Phaser from 'phaser'
 import { characters, createInitialRunState, preloadCharacterAssets } from '../gameData.js'
 
+const characterSelectBackgroundUrl = new URL('../assets/menu/Start.png', import.meta.url).href
+
 export default class CharacterSelectScene extends Phaser.Scene {
   constructor() {
     super('CharacterSelectScene')
   }
 
   preload() {
+    this.load.image('character-select-background', characterSelectBackgroundUrl)
     preloadCharacterAssets(this)
   }
 
@@ -82,52 +85,14 @@ export default class CharacterSelectScene extends Phaser.Scene {
   }
 
   createSketchBackground() {
-    this.add.rectangle(480, 270, 960, 540, 0x35a4ba)
+    this.add.image(480, 270, 'character-select-background')
+      .setDisplaySize(960, 540)
 
-    if (!this.textures.exists('character-select-paper')) {
-      const texture = this.textures.createCanvas('character-select-paper', 960, 540)
-      const context = texture.getContext()
-      context.fillStyle = '#35a4ba'
-      context.fillRect(0, 0, 960, 540)
-      context.strokeStyle = 'rgba(15, 78, 96, 0.44)'
-      context.lineWidth = 5
-      context.lineCap = 'round'
-      context.lineJoin = 'round'
+    this.add.rectangle(480, 270, 960, 540, 0x808080, 0.48)
 
-      const drawLine = (points) => {
-        context.beginPath()
-        context.moveTo(points[0][0], points[0][1])
-        points.slice(1).forEach(([x, y]) => context.lineTo(x, y))
-        context.stroke()
-      }
-
-      drawLine([[98, 13], [186, 64], [271, 44], [314, 95], [258, 99], [344, 164]])
-      drawLine([[685, -8], [654, 106], [754, 25], [861, 56], [876, 166], [790, 229]])
-      drawLine([[82, 154], [245, 192], [248, 388], [88, 426], [38, 258]])
-      drawLine([[621, 187], [801, 168], [866, 255], [827, 399], [653, 394], [626, 287]])
-      drawLine([[350, 421], [418, 344], [513, 372], [585, 318], [674, 452]])
-      drawLine([[471, 73], [553, 31], [660, 84], [622, 146], [493, 139]])
-      drawLine([[126, 226], [202, 244], [190, 349], [112, 335], [99, 273], [126, 226]])
-      drawLine([[715, 239], [781, 235], [797, 337], [719, 349], [695, 292], [715, 239]])
-
-      context.lineWidth = 3
-      for (let index = 0; index < 35; index += 1) {
-        const x = Phaser.Math.Between(28, 920)
-        const y = Phaser.Math.Between(28, 510)
-        const length = Phaser.Math.Between(34, 108)
-        const tilt = Phaser.Math.FloatBetween(-0.9, 0.9)
-        drawLine([[x, y], [x + length, y + length * tilt]])
-      }
-
-      texture.refresh()
-    }
-    this.add.image(480, 270, 'character-select-paper').setAlpha(0.92)
-
-    const vignette = this.add.graphics()
-    vignette.fillStyle(0x0f4e60, 0.18)
-    vignette.fillRect(0, 0, 960, 540)
-    vignette.fillStyle(0x35a4ba, 0.52)
-    vignette.fillEllipse(480, 286, 620, 430)
+    const spotlight = this.add.graphics()
+    spotlight.fillStyle(0xffffff, 0.12)
+    spotlight.fillEllipse(480, 286, 640, 420)
   }
 
   createArrowButton(x, y, direction) {

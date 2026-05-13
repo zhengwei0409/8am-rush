@@ -1,3 +1,5 @@
+const bgmUrl = new URL('../assets/audio/runningBGM.mp3', import.meta.url).href
+const jumpUrl = new URL('../assets/audio/jump.mp3', import.meta.url).href
 import Phaser from 'phaser'
 import Player from '../entities/Player.js'
 import Enemy from '../entities/Enemy.js'
@@ -24,10 +26,22 @@ export default class BaseLevel extends Phaser.Scene {
 
   preload() {
     this.load.image(this.levelConfig.backgroundKey, this.levelConfig.backgroundUrl)
+    this.load.audio('bgm', bgmUrl)
+    this.load.audio('jump', jumpUrl)
   }
 
   create() {
     this.configureLevelMetrics()
+
+    this.bgm = this.sound.add('bgm', {
+      loop: true,
+      volume: 0.8,
+    })
+
+    if (!this.sound.get('bgm')?.isPlaying) {
+      this.bgm.play()
+    }
+
     this.finished = false
     this.gameOver = false
     this.levelStarted = false
@@ -46,6 +60,7 @@ export default class BaseLevel extends Phaser.Scene {
     this.createControls()
     this.configureCamera()
     this.startLevelCountdown()
+
   }
 
   update(_time, delta) {
@@ -200,6 +215,7 @@ export default class BaseLevel extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE', () => {
       if (this.canUseControls()) {
         this.player.jump()
+        this.sound.play('jump', { volume: 0.4 })
       }
     })
 

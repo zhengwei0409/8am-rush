@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { playStartBgm, startBgmUrl } from '../audio.js'
 
 const startBackgroundUrl = new URL('../assets/menu/Start.png', import.meta.url).href
 
@@ -9,9 +10,12 @@ export default class StartScene extends Phaser.Scene {
 
   preload() {
     this.load.image('start-menu-background', startBackgroundUrl)
+    this.load.audio('start-bgm', startBgmUrl)
   }
 
   create() {
+    playStartBgm(this)
+
     this.add.image(480, 270, 'start-menu-background')
       .setDisplaySize(960, 540)
 
@@ -73,7 +77,10 @@ export default class StartScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5)
 
-    const startGame = () => this.scene.start('CharacterSelectScene')
+    const startGame = () => {
+      playStartBgm(this)
+      this.scene.start('CharacterSelectScene')
+    }
 
     this.createMenuButton(480, 470, 212, 30, 'START GAME', 0xd89100, 0xffbd1f, startGame)
     this.createMenuButton(480, 510, 212, 30, 'EXIT GAME', 0x013b78, 0x0657a7, () => this.game.destroy(true))

@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { playStartBgm, startBgmUrl, stopStartBgm } from '../audio.js'
 import { characters, createInitialRunState, preloadCharacterAssets } from '../gameData.js'
 
 const characterSelectBackgroundUrl = new URL('../assets/menu/Start.png', import.meta.url).href
@@ -10,10 +11,13 @@ export default class CharacterSelectScene extends Phaser.Scene {
 
   preload() {
     this.load.image('character-select-background', characterSelectBackgroundUrl)
+    this.load.audio('start-bgm', startBgmUrl)
     preloadCharacterAssets(this)
   }
 
   create() {
+    playStartBgm(this)
+
     this.selectedIndex = 0
     this.isChanging = false
 
@@ -183,6 +187,7 @@ export default class CharacterSelectScene extends Phaser.Scene {
       return
     }
 
+    stopStartBgm(this)
     this.scene.start('Level1', createInitialRunState(characters[this.selectedIndex].key))
   }
 }

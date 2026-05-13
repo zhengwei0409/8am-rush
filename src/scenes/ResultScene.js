@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { playStartBgm, startBgmUrl, stopRunningBgm } from '../audio.js'
 import { formatRaceClock, formatRemainingTime } from '../gameData.js'
 
 export default class ResultScene extends Phaser.Scene {
@@ -10,7 +11,14 @@ export default class ResultScene extends Phaser.Scene {
     this.result = data
   }
 
+  preload() {
+    this.load.audio('start-bgm', startBgmUrl)
+  }
+
   create() {
+    stopRunningBgm(this)
+    playStartBgm(this)
+
     const won = this.result.won
     const title = won ? 'You Made It Before 8:00!' : 'Late for Class'
     const color = won ? '#72e0a2' : '#ff5d5d'

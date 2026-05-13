@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { playStartBgm, startBgmUrl } from '../audio.js'
 
 const startBackgroundUrl = new URL('../assets/menu/Start.png', import.meta.url).href
+const logoUrl = new URL('../assets/logo.png', import.meta.url).href
 
 export default class StartScene extends Phaser.Scene {
   constructor() {
@@ -10,6 +11,7 @@ export default class StartScene extends Phaser.Scene {
 
   preload() {
     this.load.image('start-menu-background', startBackgroundUrl)
+    this.load.image('game-logo', logoUrl)
     this.load.audio('start-bgm', startBgmUrl)
   }
 
@@ -18,6 +20,11 @@ export default class StartScene extends Phaser.Scene {
 
     this.add.image(480, 270, 'start-menu-background')
       .setDisplaySize(960, 540)
+
+    const logo = this.add.image(480, 260, 'game-logo')
+      .setOrigin(0.5)
+
+    logo.setScale(Math.min(360 / logo.width, 190 / logo.height))
 
     this.add.rectangle(480, 432, 960, 216, 0x061326, 0.28)
 

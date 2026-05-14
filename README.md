@@ -1,73 +1,82 @@
-# React + TypeScript + Vite
+# 8am Rush
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A 2D side-scrolling platformer game built with Phaser 4, React, and TypeScript. You play as a university student racing against the clock to reach Universiti Malaya before 8:00 AM.
 
-Currently, two official plugins are available:
+## Gameplay
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Run and jump across 3 levels — Dorm Walkway, MRT Station, and University Gate — while avoiding obstacles. You have 90 seconds (real time) before the in-game clock hits 8:00 AM. Reach the finish line of Level 3 to win.
 
-## React Compiler
+**Controls**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Key | Action |
+|-----|--------|
+| `SPACE` or mouse click | Jump |
+| `A` / `D` or `←` / `→` | Navigate character select |
+| `ENTER` or `SPACE` | Confirm selection / Start game |
 
-## Expanding the ESLint configuration
+**Scoring**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+Level score = 500 (base) + remaining seconds + (70 - elapsed seconds) × 5
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Characters
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- CS Student
+- Medic Student
+- Engineer Student
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Each character has 5 animation states: running, jumping, falling, idle, and slipping.
+
+## Tech Stack
+
+| Technology | Version | Role |
+|---|---|---|
+| Phaser | 4.1.0 | Game engine (physics, scenes, animations) |
+| React | 19.2.5 | Mounts the game canvas into the web page |
+| TypeScript | 6.0.2 | Type safety |
+| Vite | 8.0.10 | Dev server and build tool |
+| Tailwind CSS | 4.2.4 | Styling for the page wrapper |
+
+## Project Structure
+
+```
+src/
+├── App.tsx                    # React root — configures and mounts the Phaser game
+├── gameData.js                # Character data, game constants, helper functions
+├── audio.js                   # Audio management
+├── entities/
+│   ├── Player.js              # Player sprite with physics and animations
+│   └── Enemy.js               # Obstacle/enemy sprite
+└── scenes/
+    ├── StartScene.js          # Main menu
+    ├── CharacterSelectScene.js # Character selection screen
+    ├── BaseLevel.js           # Shared base class for all levels
+    ├── Level1.js              # Level 1: Dorm Walkway
+    ├── Level2.js              # Level 2: MRT Station
+    ├── Level3.js              # Level 3: University Gate
+    ├── LevelSummaryScene.js   # Checkpoint summary between levels
+    └── ResultScene.js         # Final result screen
+```
+
+## Getting Started
+
+**Prerequisites:** Node.js installed on your machine.
+
+```bash
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+Then open `http://localhost:5173` in your browser.
+
+**Other commands**
+
+```bash
+npm run build    # Production build
+npm run preview  # Preview the production build locally
+npm run lint     # Run ESLint
 ```

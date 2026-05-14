@@ -58,9 +58,10 @@ export default class LevelSummaryScene extends Phaser.Scene {
       strokeThickness: 7,
     }).setOrigin(0.5)
 
-    this.createSummaryRow(480, 224, 'CLOCK', `${formatRaceClock(this.summary.elapsedMs)} AM`, 0xffcc48)
-    this.createSummaryRow(480, 274, 'LEFT', formatRemainingTime(this.summary.elapsedMs), 0x74e1ff)
-    this.createSummaryRow(480, 324, 'SCORE', `+${this.summary.levelScore}   TOTAL ${this.summary.score}`, 0xff8a5c)
+    this.createSummaryRow(480, 214, 'CLOCK', `${formatRaceClock(this.summary.elapsedMs)} AM`, 0xffcc48)
+    this.createSummaryRow(480, 260, 'LEFT', formatRemainingTime(this.summary.elapsedMs), 0x74e1ff)
+    this.createSummaryRow(480, 306, 'SCORE', `+${this.summary.levelScore}   TOTAL ${this.summary.score}`, 0xff8a5c)
+    this.createSummaryRow(480, 352, 'COINS', `${this.summary.totalCoins ?? 0}`, 0xffd966)
 
     const buttonShadow = this.add.rectangle(486, 414, 278, 62, 0x061326, 0.82)
     const button = this.add.rectangle(480, 406, 278, 62, 0xffcc48, 1)
@@ -81,6 +82,7 @@ export default class LevelSummaryScene extends Phaser.Scene {
       currentLevel: nextLevel,
       elapsedMs: this.summary.elapsedMs,
       score: this.summary.score,
+      totalCoins: this.summary.totalCoins ?? 0,
     })
 
     button.on('pointerover', () => button.setFillStyle(0xffdd62))

@@ -26,6 +26,18 @@ export default class BaseLevel extends Phaser.Scene {
 
   preload() {
     this.load.image(this.levelConfig.backgroundKey, this.levelConfig.backgroundUrl)
+
+    for (let i = 1; i <= 4; i++) {
+        const platformKey = `platform_${this.levelConfig.number}.${i}`;
+        const ext = (this.levelConfig.number === 1 && i === 1) ? 'jpg' : 'png';
+        const url = new URL(`../assets/platform/level-${this.levelConfig.number}/${platformKey}.${ext}`, import.meta.url).href;
+        this.load.image(platformKey, url);
+    }
+
+    if (this.levelConfig.obstacleUrl) {
+        this.load.image(this.levelConfig.obstacleKey, this.levelConfig.obstacleUrl);
+    }
+
     this.load.audio('bgm', bgmUrl)
     this.load.audio('jump', jumpUrl)
   }
@@ -96,47 +108,33 @@ export default class BaseLevel extends Phaser.Scene {
   }
 
   createPlatforms() {
-    this.platforms = this.physics.add.staticGroup()
+    this.platforms = this.physics.add.staticGroup();
 
-    this.levelConfig.platforms.forEach(([x, y, width, height]) => {
-      const scaledX = this.scaleLevelValue(x)
-      const scaledY = this.scaleLevelValue(y)
-      const scaledWidth = this.scaleLevelValue(width)
-      const scaledHeight = this.scaleLevelValue(height)
-      const platform = this.add.rectangle(
-        scaledX + scaledWidth / 2,
-        scaledY,
-        scaledWidth,
-        scaledHeight,
-        0x24344d,
-        0.72,
-      )
-      platform.setStrokeStyle(4 * this.levelScale, this.levelConfig.accent, 0.95)
-      platform.setDepth(3)
-      this.physics.add.existing(platform, true)
-      this.platforms.add(platform)
+    const PLATFORM_ASSET_SCALE = 0.2;
+    this.levelConfig.platforms.forEach(([x, y, assetKey]) => {
+        const platform = this.platforms.create(
+            this.scaleLevelValue(x),
+            this.scaleLevelValue(y),
+            assetKey
+        );
+        platform.setOrigin(0, 0.5); 
+        platform.setScale(this.levelScale * PLATFORM_ASSET_SCALE);
+        platform.refreshBody(); 
+        platform.setDepth(3);
+    });
 
-      this.add.rectangle(
-        scaledX + scaledWidth / 2,
-        scaledY - scaledHeight / 2 + this.scaleLevelValue(4),
-        scaledWidth,
-        this.scaleLevelValue(8),
-        0x89d6ff,
-        0.85,
-      ).setDepth(4)
-    })
-
+    // Invisible floor for the player to run on
     const runnerFloor = this.add.rectangle(
-      this.levelWidth / 2,
-      this.groundY + this.scaleLevelValue(8),
-      this.levelWidth,
-      this.scaleLevelValue(28),
-      0x000000,
-      0,
-    )
-    this.physics.add.existing(runnerFloor, true)
-    this.platforms.add(runnerFloor)
-  }
+        this.levelWidth / 2,
+        this.groundY + this.scaleLevelValue(8),
+        this.levelWidth,
+        this.scaleLevelValue(28),
+        0x000000,
+        0
+    );
+    this.physics.add.existing(runnerFloor, true);
+    this.platforms.add(runnerFloor);
+}
 
   createFinishLine() {
     const pole = this.add.rectangle(
@@ -180,19 +178,20 @@ export default class BaseLevel extends Phaser.Scene {
   }
 
   createHazards() {
-    this.hazards = this.physics.add.staticGroup()
+    this.hazards = this.physics.add.staticGroup();
 
-    this.levelConfig.hazards.forEach(([x, y, type]) => {
-      const hazard = new Enemy(
-        this,
-        this.scaleLevelValue(x),
-        this.scaleLevelValue(y),
-        type,
-        this.levelScale,
-      )
-      this.hazards.add(hazard)
-    })
-  }
+    const levelScaleFactor = this.levelConfig.hazardScale ?? 1;
+    this.levelConfig.hazards.forEach(([x, y]) => {
+        const hazard = new Enemy(
+            this,
+            this.scaleLevelValue(x),
+            this.scaleLevelValue(y),
+            this.levelConfig.obstacleKey,
+            this.levelScale * levelScaleFactor
+        );
+        this.hazards.add(hazard);
+    });
+}
 
   createHud() {
     this.add.rectangle(838, 48, 220, 68, 0x101622, 0.72)

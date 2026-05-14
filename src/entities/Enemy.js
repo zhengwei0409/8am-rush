@@ -1,21 +1,37 @@
 import Phaser from 'phaser'
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, type = 'cone', worldScale = 1) {
-    super(scene, x, y, type === 'barrier' ? 'barrier' : 'cone')
+    constructor(scene, x, y, assetKey, worldScale = 1) {
+        super(scene, x, y, assetKey);
 
-    scene.add.existing(this)
-    scene.physics.add.existing(this, true)
+        scene.add.existing(this);
+        scene.physics.add.existing(this, true);
 
-    this.setDepth(8)
-    this.setOrigin(0.5, 1)
-
-    if (type === 'barrier') {
-      this.body.setSize(58 * worldScale, 88 * worldScale)
-      this.setDisplaySize(64 * worldScale, 92 * worldScale)
-    } else {
-      this.body.setSize(44 * worldScale, 54 * worldScale)
-      this.setDisplaySize(52 * worldScale, 62 * worldScale)
+        this.setDepth(8);
+        this.setOrigin(0.5, 1);
+        
+        // Let the physics body match the actual image size
+        this.setScale(worldScale);
+        this.body.setSize(this.width * 0.8, this.height * 0.8);
     }
-  }
 }
+
+// export default class Enemy extends Phaser.Physics.Arcade.Sprite {
+//   constructor(scene, x, y, type = 'cone', worldScale = 1) {
+//     super(scene, x, y, type === 'barrier' ? 'barrier' : 'cone')
+
+//     scene.add.existing(this)
+//     scene.physics.add.existing(this, true)
+
+//     this.setDepth(8)
+//     this.setOrigin(0.5, 1)
+
+//     if (type === 'barrier') {
+//       this.body.setSize(58 * worldScale, 88 * worldScale)
+//       this.setDisplaySize(64 * worldScale, 92 * worldScale)
+//     } else {
+//       this.body.setSize(44 * worldScale, 54 * worldScale)
+//       this.setDisplaySize(52 * worldScale, 62 * worldScale)
+//     }
+//   }
+// }

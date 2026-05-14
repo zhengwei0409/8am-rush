@@ -49,15 +49,25 @@ export default class ResultScene extends Phaser.Scene {
       color: '#ffcc48',
     }).setOrigin(0.5)
 
-    this.add.text(480, 296, `Remaining: ${formatRemainingTime(this.result.elapsedMs)}    Score: ${this.result.score}`, {
+    this.add.text(480, 290, `Remaining: ${formatRemainingTime(this.result.elapsedMs)}    Score: ${this.result.score}`, {
       fontFamily: 'Arial',
       fontSize: '24px',
       color: '#dce8ff',
     }).setOrigin(0.5)
 
-    const button = this.add.rectangle(480, 390, 240, 64, 0xffcc48, 1)
+    this.add.rectangle(480, 340, 380, 44, 0x101622, 0.6).setStrokeStyle(2, 0xffd966, 1)
+    this.add.text(480, 340, `💰  Coins Collected:  ${this.result.totalCoins ?? 0}`, {
+      fontFamily: 'Courier New',
+      fontSize: '22px',
+      fontStyle: '700',
+      color: '#ffd966',
+      stroke: '#101622',
+      strokeThickness: 4,
+    }).setOrigin(0.5)
+
+    const button = this.add.rectangle(480, 408, 240, 64, 0xffcc48, 1)
       .setInteractive({ useHandCursor: true })
-    this.add.text(480, 390, 'Play Again', {
+    this.add.text(480, 408, 'Play Again', {
       fontFamily: 'Arial',
       fontSize: '26px',
       fontStyle: '900',

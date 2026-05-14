@@ -1,5 +1,6 @@
 const bgmUrl = new URL('../assets/audio/runningBGM.mp3', import.meta.url).href
 const jumpUrl = new URL('../assets/audio/jump.mp3', import.meta.url).href
+const collectibleUrl = new URL('../assets/audio/collectible.mp3', import.meta.url).href
 import Phaser from 'phaser'
 import Player from '../entities/Player.js'
 import Enemy from '../entities/Enemy.js'
@@ -8,6 +9,9 @@ import {
   formatRaceClock,
   registerCharacterAnimations,
 } from '../gameData.js'
+import coinLevel1 from '../assets/collectible/level 1.png';
+import coinLevel2 from '../assets/collectible/level 2.png';
+import coinLevel3 from '../assets/collectible/level 3.png';
 
 export default class BaseLevel extends Phaser.Scene {
   constructor(sceneKey, config) {
@@ -21,6 +25,7 @@ export default class BaseLevel extends Phaser.Scene {
       currentLevel: this.levelConfig.number,
       elapsedMs: data?.elapsedMs ?? 0,
       score: data?.score ?? 0,
+      totalCoins: data?.totalCoins ?? 0,
     }
   }
 
@@ -38,8 +43,12 @@ export default class BaseLevel extends Phaser.Scene {
         this.load.image(this.levelConfig.obstacleKey, this.levelConfig.obstacleUrl);
     }
 
+    const coinUrls = [coinLevel1, coinLevel2, coinLevel3]
+    this.load.image(`coin_${this.levelConfig.number}`, coinUrls[this.levelConfig.number - 1])
+
     this.load.audio('bgm', bgmUrl)
     this.load.audio('jump', jumpUrl)
+    this.load.audio('collectible', collectibleUrl)
   }
 
   create() {
@@ -73,6 +82,10 @@ export default class BaseLevel extends Phaser.Scene {
     this.configureCamera()
     this.startLevelCountdown()
 
+    this.coins = this.physics.add.group()
+    this.coinCount = 0
+    this.createCoins()
+    this.createCoinHUD()
   }
 
   update(_time, delta) {
@@ -109,6 +122,7 @@ export default class BaseLevel extends Phaser.Scene {
 
   createPlatforms() {
     this.platforms = this.physics.add.staticGroup();
+    this.platformSprites = [];
 
     const PLATFORM_ASSET_SCALE = 0.2;
     this.levelConfig.platforms.forEach(([x, y, assetKey]) => {
@@ -117,10 +131,11 @@ export default class BaseLevel extends Phaser.Scene {
             this.scaleLevelValue(y),
             assetKey
         );
-        platform.setOrigin(0, 0.5); 
+        platform.setOrigin(0, 0.5);
         platform.setScale(this.levelScale * PLATFORM_ASSET_SCALE);
-        platform.refreshBody(); 
+        platform.refreshBody();
         platform.setDepth(3);
+        this.platformSprites.push(platform);
     });
 
     // Invisible floor for the player to run on
@@ -392,6 +407,64 @@ export default class BaseLevel extends Phaser.Scene {
       ...this.runState,
       won,
       reason,
+    })
+  }
+
+  createCoinHUD() {
+    const x = 14, y = 14, bgW = 122, bgH = 42
+
+    this.add.rectangle(x, y, bgW, bgH, 0x101622, 0.82)
+      .setOrigin(0, 0)
+      .setScrollFactor(0)
+      .setDepth(24)
+
+    this.add.text(x + 10, y + bgH / 2, '💰', { fontSize: '22px' })
+      .setOrigin(0, 0.5)
+      .setScrollFactor(0)
+      .setDepth(25)
+
+    this.coinCountText = this.add.text(x + 46, y + bgH / 2, '0', {
+      fontFamily: 'Courier New',
+      fontSize: '26px',
+      fontStyle: '700',
+      color: '#ffcc48',
+      stroke: '#101622',
+      strokeThickness: 5,
+    }).setOrigin(0, 0.5).setScrollFactor(0).setDepth(25)
+  }
+
+  createCoins() {
+    const coinKey = `coin_${this.levelConfig.number}`
+    const coinSize = this.scaleLevelValue(42)
+
+    this.levelConfig.coins.forEach(([x, y]) => {
+      const coin = this.coins.create(
+        this.scaleLevelValue(x),
+        this.scaleLevelValue(y),
+        coinKey
+      )
+      coin.body.setAllowGravity(false)
+      coin.setDisplaySize(coinSize, coinSize)
+      coin.setDepth(6)
+    })
+
+    this.physics.add.overlap(this.player, this.coins, this.collectCoin, null, this)
+  }
+
+  collectCoin(player, coin) {
+    coin.destroy()
+    this.coinCount++
+    this.runState.totalCoins++
+    this.sound.play('collectible', { volume: 0.5 })
+    this.coinCountText.setText(this.coinCount.toString())
+    this.tweens.killTweensOf(this.coinCountText)
+    this.tweens.add({
+      targets: this.coinCountText,
+      scaleX: 1.6,
+      scaleY: 1.6,
+      duration: 80,
+      yoyo: true,
+      ease: 'Power2',
     })
   }
 }

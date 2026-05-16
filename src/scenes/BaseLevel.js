@@ -1,6 +1,24 @@
 const bgmUrl = new URL('../assets/audio/runningBGM.mp3', import.meta.url).href
 const jumpUrl = new URL('../assets/audio/jump.mp3', import.meta.url).href
 const collectibleUrl = new URL('../assets/audio/collectible.mp3', import.meta.url).href
+const hitSoundUrl = new URL('../assets/audio/hit-sound.mp3', import.meta.url).href
+const clownWalk1Url = new URL('../assets/enemies/clown_walking/walking_01.png', import.meta.url).href
+const clownWalk2Url = new URL('../assets/enemies/clown_walking/walking_02.png', import.meta.url).href
+const clownWalk3Url = new URL('../assets/enemies/clown_walking/walking_03.png', import.meta.url).href
+const clownThrow1Url = new URL('../assets/enemies/clown_throwing/throwing_1.png', import.meta.url).href
+const clownThrow2Url = new URL('../assets/enemies/clown_throwing/throwing_2.png', import.meta.url).href
+const icecreamUrl = new URL('../assets/enemies/ice_cream/ice_cream_1.png', import.meta.url).href
+const phonePersonWalk1Url = new URL('../assets/enemies/person_phone_walking/walking_1.png', import.meta.url).href
+const phonePersonWalk2Url = new URL('../assets/enemies/person_phone_walking/walking_2.png', import.meta.url).href
+const phonePersonWalk3Url = new URL('../assets/enemies/person_phone_walking/walking_3.png', import.meta.url).href
+const phonePersonCollide1Url = new URL('../assets/enemies/person_phone_collide/collide_1.png', import.meta.url).href
+const phonePersonCollide2Url = new URL('../assets/enemies/person_phone_collide/collide_2.png', import.meta.url).href
+const phonePersonCollide3Url = new URL('../assets/enemies/person_phone_collide/collide_3.png', import.meta.url).href
+const guardWalk1Url = new URL('../assets/enemies/guard_walking/walking_1.png', import.meta.url).href
+const guardWalk2Url = new URL('../assets/enemies/guard_walking/walking_2.png', import.meta.url).href
+const guardWalk3Url = new URL('../assets/enemies/guard_walking/walking_3.png', import.meta.url).href
+const guardCollide1Url = new URL('../assets/enemies/guard_collide/collide_1.png', import.meta.url).href
+const guardCollide2Url = new URL('../assets/enemies/guard_collide/collide_2.png', import.meta.url).href
 import Phaser from 'phaser'
 import Player from '../entities/Player.js'
 import Enemy from '../entities/Enemy.js'
@@ -32,16 +50,35 @@ export default class BaseLevel extends Phaser.Scene {
   preload() {
     this.load.image(this.levelConfig.backgroundKey, this.levelConfig.backgroundUrl)
 
-    for (let i = 1; i <= 4; i++) {
-        const platformKey = `platform_${this.levelConfig.number}.${i}`;
-        const ext = (this.levelConfig.number === 1 && i === 1) ? 'jpg' : 'png';
-        const url = new URL(`../assets/platform/level-${this.levelConfig.number}/${platformKey}.${ext}`, import.meta.url).href;
-        this.load.image(platformKey, url);
-    }
+    const platformKeys = new Set(this.levelConfig.platforms.map(([, , assetKey]) => assetKey))
+    platformKeys.forEach((platformKey) => {
+      const platformNumber = platformKey.split('.')[1]
+      const ext = (this.levelConfig.number === 1 && platformNumber === '1') ? 'jpg' : 'png'
+      const url = new URL(`../assets/platform/level-${this.levelConfig.number}/${platformKey}.${ext}`, import.meta.url).href
+      this.load.image(platformKey, url)
+    })
 
     if (this.levelConfig.obstacleUrl) {
         this.load.image(this.levelConfig.obstacleKey, this.levelConfig.obstacleUrl);
     }
+
+    this.load.image('enemy-clown-walk-1', clownWalk1Url)
+    this.load.image('enemy-clown-walk-2', clownWalk2Url)
+    this.load.image('enemy-clown-walk-3', clownWalk3Url)
+    this.load.image('enemy-clown-throw-1', clownThrow1Url)
+    this.load.image('enemy-clown-throw-2', clownThrow2Url)
+    this.load.image('enemy-icecream', icecreamUrl)
+    this.load.image('enemy-phone-person', phonePersonWalk1Url)
+    this.load.image('enemy-phone-person-2', phonePersonWalk2Url)
+    this.load.image('enemy-phone-person-3', phonePersonWalk3Url)
+    this.load.image('enemy-phone-person-collide-1', phonePersonCollide1Url)
+    this.load.image('enemy-phone-person-collide-2', phonePersonCollide2Url)
+    this.load.image('enemy-phone-person-collide-3', phonePersonCollide3Url)
+    this.load.image('enemy-security-guard', guardWalk1Url)
+    this.load.image('enemy-security-guard-2', guardWalk2Url)
+    this.load.image('enemy-security-guard-3', guardWalk3Url)
+    this.load.image('enemy-security-guard-collide-1', guardCollide1Url)
+    this.load.image('enemy-security-guard-collide-2', guardCollide2Url)
 
     const coinUrls = [coinLevel1, coinLevel2, coinLevel3]
     this.load.image(`coin_${this.levelConfig.number}`, coinUrls[this.levelConfig.number - 1])
@@ -49,6 +86,7 @@ export default class BaseLevel extends Phaser.Scene {
     this.load.audio('bgm', bgmUrl)
     this.load.audio('jump', jumpUrl)
     this.load.audio('collectible', collectibleUrl)
+    this.load.audio('hit-sound', hitSoundUrl)
   }
 
   create() {
@@ -71,12 +109,14 @@ export default class BaseLevel extends Phaser.Scene {
     this.physics.world.gravity.y = 1600 * this.levelScale
 
     registerCharacterAnimations(this)
+    this.registerEnemyAnimations()
     this.createGeneratedHazardTextures()
     this.createBackground()
     this.createPlatforms()
     this.createFinishLine()
     this.createPlayer()
     this.createHazards()
+    this.createSceneEnemies()
     this.createHud()
     this.createControls()
     this.configureCamera()
@@ -88,7 +128,7 @@ export default class BaseLevel extends Phaser.Scene {
     this.createCoinHUD()
   }
 
-  update(_time, delta) {
+  update(time, delta) {
     if (this.gameOver || this.finished) {
       return
     }
@@ -106,6 +146,7 @@ export default class BaseLevel extends Phaser.Scene {
     }
 
     this.player.update()
+    this.updateSceneEnemies(time)
 
     if (this.player.x >= this.finishX) {
       this.completeLevel()
@@ -207,6 +248,356 @@ export default class BaseLevel extends Phaser.Scene {
         this.hazards.add(hazard);
     });
 }
+
+  createSceneEnemies() {
+    this.sceneEnemies = this.physics.add.group({
+      allowGravity: false,
+      immovable: true,
+    })
+    this.enemyProjectiles = this.physics.add.group({
+      allowGravity: false,
+    })
+
+    const enemyConfigs = this.levelConfig.enemies ?? []
+
+    enemyConfigs.forEach((config) => {
+      const enemy = this.sceneEnemies.create(
+        this.scaleLevelValue(config.x),
+        this.scaleLevelValue(config.y),
+        config.texture,
+        config.frame,
+      )
+
+      enemy.enemyConfig = config
+      if (config.frame !== undefined) {
+        enemy.setFrame(config.frame)
+      }
+      enemy.startX = enemy.x
+      enemy.direction = config.direction ?? -1
+      enemy.nextAttackAt = 0
+      enemy.setOrigin(0.5, 1)
+      enemy.setScale(this.levelScale * (config.scale ?? 0.22))
+      enemy.setDepth(9)
+      enemy.setFlipX(enemy.direction < 0)
+      enemy.patrolBounds = this.getEnemyPatrolBounds(config, enemy)
+      if (config.animation && !enemy.anims.isPlaying) {
+        enemy.play(config.animation, true)
+      }
+      enemy.body.setAllowGravity(false)
+      enemy.body.setImmovable(true)
+      enemy.body.setSize(enemy.width * 0.45, enemy.height * 0.75)
+      enemy.body.setOffset(enemy.width * 0.28, enemy.height * 0.16)
+    })
+
+    this.physics.add.overlap(this.player, this.sceneEnemies, this.handleEnemyTouch, null, this)
+    this.physics.add.overlap(this.player, this.enemyProjectiles, this.handleProjectileHit, null, this)
+    this.physics.add.collider(this.enemyProjectiles, this.platforms, this.handleProjectilePlatformHit, null, this)
+  }
+
+  getEnemyPatrolBounds(config, enemy) {
+    const fallbackDistance = config.patrolDistance ?? 180
+    const fallbackLeft = config.x - fallbackDistance / 2
+    const fallbackRight = config.x + fallbackDistance / 2
+    const yTolerance = 4
+    const platformScale = 0.2
+
+    const rowSegments = this.levelConfig.platforms
+      .filter(([, y]) => Math.abs(y - config.y) <= yTolerance)
+      .map(([x, , assetKey]) => {
+        const source = this.textures.get(assetKey).getSourceImage()
+        return {
+          left: x,
+          right: x + source.width * platformScale,
+        }
+      })
+      .sort((a, b) => a.left - b.left)
+
+    const mergedSegments = []
+    rowSegments.forEach((segment) => {
+      const previous = mergedSegments[mergedSegments.length - 1]
+      if (previous && segment.left <= previous.right + 4) {
+        previous.right = Math.max(previous.right, segment.right)
+      } else {
+        mergedSegments.push({ ...segment })
+      }
+    })
+
+    const platformSegment = mergedSegments.find((segment) => (
+      config.x >= segment.left && config.x <= segment.right
+    ))
+
+    if (!platformSegment) {
+      return {
+        left: this.scaleLevelValue(fallbackLeft),
+        right: this.scaleLevelValue(fallbackRight),
+      }
+    }
+
+    const footMargin = Math.max(enemy.width * (config.platformMarginRatio ?? 0.18), 34)
+    const left = Math.max(fallbackLeft, platformSegment.left + footMargin)
+    const right = Math.min(fallbackRight, platformSegment.right - footMargin)
+
+    if (left >= right) {
+      const center = Phaser.Math.Clamp(config.x, platformSegment.left + footMargin, platformSegment.right - footMargin)
+      return {
+        left: this.scaleLevelValue(center),
+        right: this.scaleLevelValue(center),
+      }
+    }
+
+    return {
+      left: this.scaleLevelValue(left),
+      right: this.scaleLevelValue(right),
+    }
+  }
+
+  registerEnemyAnimations() {
+    const animations = [
+      {
+        key: 'enemy-clown-walk',
+        frameKeys: ['enemy-clown-walk-1', 'enemy-clown-walk-2', 'enemy-clown-walk-3'],
+        frameRate: 8,
+      },
+      {
+        key: 'enemy-clown-throw',
+        frameKeys: ['enemy-clown-throw-1', 'enemy-clown-throw-2'],
+        frameRate: 8,
+      },
+      {
+        key: 'enemy-phone-walk',
+        frameKeys: ['enemy-phone-person', 'enemy-phone-person-2', 'enemy-phone-person-3'],
+        frameRate: 9,
+      },
+      {
+        key: 'enemy-phone-collide',
+        frameKeys: ['enemy-phone-person-collide-1', 'enemy-phone-person-collide-2', 'enemy-phone-person-collide-3'],
+        frameRate: 9,
+      },
+      {
+        key: 'enemy-guard-walk',
+        frameKeys: ['enemy-security-guard', 'enemy-security-guard-2', 'enemy-security-guard-3'],
+        frameRate: 8,
+      },
+      {
+        key: 'enemy-guard-collide',
+        frameKeys: ['enemy-security-guard-collide-1', 'enemy-security-guard-collide-2'],
+        frameRate: 8,
+      },
+    ]
+
+    animations.forEach((animation) => {
+      if (this.anims.exists(animation.key)) {
+        return
+      }
+
+      this.anims.create({
+        key: animation.key,
+        frames: animation.frameKeys
+          ? animation.frameKeys.map((key) => ({ key }))
+          : animation.frames.map((frame) => ({
+            key: animation.texture,
+            frame,
+          })),
+        frameRate: animation.frameRate,
+        repeat: -1,
+      })
+    })
+  }
+
+  updateSceneEnemies(time) {
+    if (!this.sceneEnemies) {
+      return
+    }
+
+    this.sceneEnemies.getChildren().forEach((enemy) => {
+      if (!enemy?.active) {
+        return
+      }
+
+      const config = enemy.enemyConfig
+      const speed = this.scaleLevelValue(config.speed ?? 80)
+      const leftX = enemy.patrolBounds?.left ?? enemy.startX - this.scaleLevelValue(config.patrolDistance ?? 180) / 2
+      const rightX = enemy.patrolBounds?.right ?? enemy.startX + this.scaleLevelValue(config.patrolDistance ?? 180) / 2
+
+      if (enemy.pauseUntil > time) {
+        enemy.setVelocityX(0)
+        return
+      }
+
+      enemy.setVelocityX(speed * enemy.direction)
+      enemy.setFlipX(enemy.direction < 0)
+
+      if (enemy.x <= leftX) {
+        enemy.x = leftX
+        enemy.direction = 1
+      } else if (enemy.x >= rightX) {
+        enemy.x = rightX
+        enemy.direction = -1
+      }
+
+      const distanceToPlayer = Math.abs(this.player.x - enemy.x)
+      const attackRange = this.scaleLevelValue(config.attackRange ?? 520)
+      const isFacingPlayer = enemy.direction < 0
+        ? this.player.x < enemy.x
+        : this.player.x > enemy.x
+
+      if (
+        config.attack === 'projectile'
+        && time >= enemy.nextAttackAt
+        && distanceToPlayer <= attackRange
+        && isFacingPlayer
+      ) {
+        this.throwEnemyProjectile(enemy)
+        enemy.nextAttackAt = time + (config.attackInterval ?? 2200)
+      }
+
+      if (
+        config.approachTrigger
+        && !this.player.stunned
+        && this.player.x <= enemy.x
+        && distanceToPlayer <= this.scaleLevelValue(config.approachRange ?? 90)
+        && Math.abs(this.player.y - enemy.y) <= this.scaleLevelValue(config.approachYTolerance ?? 80)
+      ) {
+        this.handleEnemyTouch(this.player, enemy)
+      }
+    })
+
+    this.enemyProjectiles.getChildren().forEach((projectile) => {
+      const leftLimit = this.cameras.main.scrollX - this.scaleLevelValue(160)
+      const rightLimit = this.cameras.main.scrollX + this.scale.width + this.scaleLevelValue(160)
+      if (projectile?.active && (projectile.x < leftLimit || projectile.x > rightLimit)) {
+        projectile.destroy()
+      }
+    })
+  }
+
+  throwEnemyProjectile(enemy) {
+    const config = enemy.enemyConfig
+    const projectileDirection = enemy.direction < 0 ? -1 : 1
+    if (config.throwAnimation) {
+      enemy.play(config.throwAnimation, true)
+      this.time.delayedCall(config.throwDuration ?? 320, () => {
+        if (enemy.active && config.animation) {
+          enemy.play(config.animation, true)
+        }
+      })
+    }
+
+    const projectileOffsetX = Math.abs(config.projectileOffsetX ?? 34) * projectileDirection
+    const projectile = this.enemyProjectiles.create(
+      enemy.x + this.scaleLevelValue(projectileOffsetX),
+      enemy.y - enemy.displayHeight * (config.projectileOffsetYRatio ?? 0.58),
+      config.projectileTexture ?? 'enemy-icecream',
+      config.projectileFrame,
+    )
+
+    projectile.effect = config.projectileEffect ?? {
+      type: 'slow',
+      multiplier: 0.5,
+      duration: 2600,
+    }
+
+    if (config.projectileFrame !== undefined) {
+      projectile.setFrame(config.projectileFrame)
+    }
+    projectile.setOrigin(0.5)
+    projectile.setScale(this.levelScale * (config.projectileScale ?? 0.08))
+    projectile.setDepth(11)
+    projectile.body.setAllowGravity(false)
+    projectile.body.setSize(projectile.width * 0.5, projectile.height * 0.45)
+    projectile.setVelocityX(this.scaleLevelValue(config.projectileSpeed ?? 360) * projectileDirection)
+    projectile.setAngularVelocity(360 * projectileDirection)
+  }
+
+  handleEnemyTouch(player, enemy) {
+    if (!enemy.active || enemy.lastTouchAt > this.time.now - 2600) {
+      return
+    }
+
+    enemy.lastTouchAt = this.time.now
+    const effect = enemy.enemyConfig.touchEffect
+    const effectDuration = effect?.duration ?? 1600
+    const collideAnimation = enemy.enemyConfig.collideAnimation
+    const collideDuration = enemy.enemyConfig.collideDuration ?? 300
+
+    if (effect?.type !== 'slow') {
+      this.separatePlayerFromEnemy(player, enemy)
+    }
+    enemy.setFlipX(enemy.enemyConfig.blockFromLeft ? true : player.x < enemy.x)
+
+    if (effect) {
+      this.sound.play(effect.soundKey ?? 'hit-sound', {
+        volume: effect.soundVolume ?? 0.65,
+      })
+    }
+
+    if (collideAnimation) {
+      enemy.pauseUntil = this.time.now + effectDuration
+      enemy.setVelocityX(0)
+      enemy.play(collideAnimation, true)
+      if (!enemy.enemyConfig.holdCollideAnimation) {
+        this.time.delayedCall(collideDuration, () => {
+          if (enemy.active) {
+            enemy.anims.stop()
+            enemy.setTexture(enemy.enemyConfig.texture)
+          }
+        })
+      }
+      this.time.delayedCall(effectDuration, () => {
+        if (enemy.active && enemy.enemyConfig.animation) {
+          enemy.play(enemy.enemyConfig.animation, true)
+        }
+      })
+    }
+
+    if (effect?.type === 'stun') {
+      player.stun(effectDuration)
+    } else if (effect?.type === 'slow') {
+      player.applySpeedMultiplier(effect.multiplier ?? 0.5, effectDuration)
+    }
+  }
+
+  separatePlayerFromEnemy(player, enemy) {
+    const gap = this.scaleLevelValue(enemy.enemyConfig.collisionGap ?? 70)
+
+    if (enemy.enemyConfig.blockFromLeft) {
+      const targetRight = enemy.body.left - gap
+      player.x += targetRight - player.body.right
+      player.setVelocityX(0)
+      player.body.updateFromGameObject()
+      return
+    }
+
+    if (player.x <= enemy.x) {
+      const overlap = player.body.right - enemy.body.left
+      if (overlap > -gap) {
+        player.x -= overlap + gap
+      }
+    } else {
+      const overlap = enemy.body.right - player.body.left
+      if (overlap > -gap) {
+        player.x += overlap + gap
+      }
+    }
+
+    player.setVelocityX(0)
+    player.body.updateFromGameObject()
+  }
+
+  handleProjectileHit(player, projectile) {
+    const effect = projectile.effect
+    this.sound.play('hit-sound', { volume: 0.65 })
+
+    if (effect?.type === 'slow') {
+      player.applySpeedMultiplier(effect.multiplier ?? 0.5, effect.duration ?? 2600)
+    }
+
+    projectile.destroy()
+  }
+
+  handleProjectilePlatformHit(projectile) {
+    projectile.destroy()
+  }
 
   createHud() {
     this.add.rectangle(838, 48, 220, 68, 0x101622, 0.72)

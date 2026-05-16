@@ -73,6 +73,44 @@ export default class Level2 extends BaseLevel {
         [3650, 630],
         [4950, 780],
       ],
+      enemies: [
+        {
+          type: 'phone-person',
+          texture: 'enemy-phone-person',
+          frame: 0,
+          animation: 'enemy-phone-walk',
+          collideAnimation: 'enemy-phone-collide',
+          blockFromLeft: true,
+          x: 1880,
+          y: 930,
+          scale: 0.42,
+          speed: 80,
+          patrolDistance: 260,
+          collisionGap: 95,
+          touchEffect: {
+            type: 'stun',
+            duration: 1800,
+          },
+        },
+        {
+          type: 'phone-person',
+          texture: 'enemy-phone-person',
+          frame: 0,
+          animation: 'enemy-phone-walk',
+          collideAnimation: 'enemy-phone-collide',
+          blockFromLeft: true,
+          x: 4300,
+          y: 780,
+          scale: 0.4,
+          speed: 72,
+          patrolDistance: 220,
+          collisionGap: 95,
+          touchEffect: {
+            type: 'stun',
+            duration: 1800,
+          },
+        },
+      ],
       // coinY = platformY - assetHalfHeight(23) - floatAbove(55)
       coins: [
         // Ground floor

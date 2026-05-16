@@ -18,6 +18,12 @@ export const characters = [
       new URL('./assets/characters/cs-student/running/Running_0005.png', import.meta.url).href,
       new URL('./assets/characters/cs-student/running/Running_0006.png', import.meta.url).href,
     ],
+    idle: [
+      new URL('./assets/characters/cs-student/idle/idle_0001.png', import.meta.url).href,
+      new URL('./assets/characters/cs-student/idle/idle_0002.png', import.meta.url).href,
+      new URL('./assets/characters/cs-student/idle/idle_0003.png', import.meta.url).href,
+      new URL('./assets/characters/cs-student/idle/idle_0004.png', import.meta.url).href,
+    ],
     jump: new URL('./assets/characters/cs-student/jumping/Jumping.png', import.meta.url).href,
     fall: new URL('./assets/characters/cs-student/falling/Falling.png', import.meta.url).href,
   },
@@ -34,6 +40,12 @@ export const characters = [
       new URL('./assets/characters/medic-student/running/Running_0005.png', import.meta.url).href,
       new URL('./assets/characters/medic-student/running/Running_0006.png', import.meta.url).href,
     ],
+    idle: [
+      new URL('./assets/characters/medic-student/idle/idle_0001.png', import.meta.url).href,
+      new URL('./assets/characters/medic-student/idle/idle_0002.png', import.meta.url).href,
+      new URL('./assets/characters/medic-student/idle/idle_0003.png', import.meta.url).href,
+      new URL('./assets/characters/medic-student/idle/idle_0004.png', import.meta.url).href,
+    ],
     jump: new URL('./assets/characters/medic-student/jumping/Jumping.png', import.meta.url).href,
     fall: new URL('./assets/characters/medic-student/falling/Falling.png', import.meta.url).href,
   },
@@ -49,6 +61,12 @@ export const characters = [
       new URL('./assets/characters/engineer-student/running/Running_0004.png', import.meta.url).href,
       new URL('./assets/characters/engineer-student/running/Running_0005.png', import.meta.url).href,
       new URL('./assets/characters/engineer-student/running/Running_0006.png', import.meta.url).href,
+    ],
+    idle: [
+      new URL('./assets/characters/engineer-student/idle/idle_0001.png', import.meta.url).href,
+      new URL('./assets/characters/engineer-student/idle/idle_0002.png', import.meta.url).href,
+      new URL('./assets/characters/engineer-student/idle/idle_0003.png', import.meta.url).href,
+      new URL('./assets/characters/engineer-student/idle/idle_0004.png', import.meta.url).href,
     ],
     jump: new URL('./assets/characters/engineer-student/jumping/Jumping.png', import.meta.url).href,
     fall: new URL('./assets/characters/engineer-student/falling/Falling.png', import.meta.url).href,
@@ -96,22 +114,33 @@ export function preloadCharacterAssets(scene) {
     character.running.forEach((url, index) => {
       scene.load.image(`${character.key}-run-${index + 1}`, url)
     })
+    character.idle.forEach((url, index) => {
+      scene.load.image(`${character.key}-idle-${index + 1}`, url)
+    })
   })
 }
 
 export function registerCharacterAnimations(scene) {
   characters.forEach((character) => {
     const animationKey = `${character.key}-run`
+    const idleAnimationKey = `${character.key}-idle`
 
-    if (scene.anims.exists(animationKey)) {
-      return
+    if (!scene.anims.exists(animationKey)) {
+      scene.anims.create({
+        key: animationKey,
+        frames: baseRunFrames.map((frame) => ({ key: `${character.key}-run-${frame}` })),
+        frameRate: 12,
+        repeat: -1,
+      })
     }
 
-    scene.anims.create({
-      key: animationKey,
-      frames: baseRunFrames.map((frame) => ({ key: `${character.key}-run-${frame}` })),
-      frameRate: 12,
-      repeat: -1,
-    })
+    if (!scene.anims.exists(idleAnimationKey)) {
+      scene.anims.create({
+        key: idleAnimationKey,
+        frames: [1, 2, 3, 4].map((frame) => ({ key: `${character.key}-idle-${frame}` })),
+        frameRate: 6,
+        repeat: -1,
+      })
+    }
   })
 }

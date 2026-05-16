@@ -106,6 +106,8 @@ export default class BaseLevel extends Phaser.Scene {
     this.levelStarted = false
     this.controlsEnabled = false
     this.levelStartElapsed = this.runState.elapsedMs
+    this.levelStartScore = this.runState.score
+    this.levelStartTotalCoins = this.runState.totalCoins
     this.physics.world.gravity.y = 1600 * this.levelScale
 
     registerCharacterAnimations(this)
@@ -148,6 +150,11 @@ export default class BaseLevel extends Phaser.Scene {
     this.player.update()
     this.updateSceneEnemies(time)
 
+    if (this.player.body.top > this.levelHeight + this.scaleLevelValue(120)) {
+      this.restartLevelAfterFall()
+      return
+    }
+
     if (this.player.x >= this.finishX) {
       this.completeLevel()
     }
@@ -179,17 +186,6 @@ export default class BaseLevel extends Phaser.Scene {
         this.platformSprites.push(platform);
     });
 
-    // Invisible floor for the player to run on
-    const runnerFloor = this.add.rectangle(
-        this.levelWidth / 2,
-        this.groundY + this.scaleLevelValue(8),
-        this.levelWidth,
-        this.scaleLevelValue(28),
-        0x000000,
-        0
-    );
-    this.physics.add.existing(runnerFloor, true);
-    this.platforms.add(runnerFloor);
 }
 
   createFinishLine() {
@@ -788,6 +784,26 @@ export default class BaseLevel extends Phaser.Scene {
         ...this.runState,
         completedLevel: this.levelConfig.number,
         levelScore,
+      })
+    })
+  }
+
+  restartLevelAfterFall() {
+    if (this.gameOver || this.finished) {
+      return
+    }
+
+    this.gameOver = true
+    this.controlsEnabled = false
+    this.player.setVelocity(0, 0)
+    this.player.showFallPose()
+
+    this.cameras.main.fadeOut(350, 12, 18, 30)
+    this.time.delayedCall(380, () => {
+      this.scene.restart({
+        ...this.runState,
+        score: this.levelStartScore,
+        totalCoins: this.levelStartTotalCoins,
       })
     })
   }

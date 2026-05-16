@@ -87,9 +87,8 @@ export function createInitialRunState(characterKey = 'cs') {
 export function formatRaceClock(elapsedMs) {
   const clamped = Phaser.Math.Clamp(elapsedMs, 0, GAME_DURATION_MS)
   const totalGameMinutes = Math.min(60, Math.floor((clamped / GAME_DURATION_MS) * 60))
-  const displayMinutes = Math.min(60, Math.floor(totalGameMinutes / 10) * 10)
-  const hour = displayMinutes === 60 ? END_HOUR : START_HOUR
-  const minutes = displayMinutes === 60 ? 0 : displayMinutes
+  const hour = totalGameMinutes === 60 ? END_HOUR : START_HOUR
+  const minutes = totalGameMinutes === 60 ? 0 : totalGameMinutes
 
   return `${hour}:${String(minutes).padStart(2, '0')}`
 }

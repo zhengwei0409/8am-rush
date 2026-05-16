@@ -615,16 +615,21 @@ export default class BaseLevel extends Phaser.Scene {
   createControls() {
     this.input.keyboard.on('keydown-SPACE', () => {
       if (this.canUseControls()) {
-        this.player.jump()
-        this.sound.play('jump', { volume: 0.4 })
+        this.tryPlayerJump()
       }
     })
 
     this.input.on('pointerdown', () => {
       if (this.canUseControls()) {
-        this.player.jump()
+        this.tryPlayerJump()
       }
     })
+  }
+
+  tryPlayerJump() {
+    if (this.player.jump()) {
+      this.sound.play('jump', { volume: 0.75 })
+    }
   }
 
   canUseControls() {

@@ -39,15 +39,16 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
   jump() {
     if (this.stunned) {
-      return
+      return false
     }
 
     if (!this.body.blocked.down) {
-      return
+      return false
     }
 
     this.setVelocityY(this.jumpVelocity)
     this.showJumpPose()
+    return true
   }
 
   update() {

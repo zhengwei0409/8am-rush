@@ -2,6 +2,8 @@ const bgmUrl = new URL('../assets/audio/runningBGM.mp3', import.meta.url).href
 const jumpUrl = new URL('../assets/audio/jump.mp3', import.meta.url).href
 const collectibleUrl = new URL('../assets/audio/collectible.mp3', import.meta.url).href
 const hitSoundUrl = new URL('../assets/audio/hit-sound.mp3', import.meta.url).href
+const powerupSoundUrl = new URL('../assets/audio/powerup.mp3', import.meta.url).href
+const powerdownSoundUrl = new URL('../assets/audio/powerdown.mp3', import.meta.url).href
 const clownWalk1Url = new URL('../assets/enemies/clown_walking/walking_01.png', import.meta.url).href
 const clownWalk2Url = new URL('../assets/enemies/clown_walking/walking_02.png', import.meta.url).href
 const clownWalk3Url = new URL('../assets/enemies/clown_walking/walking_03.png', import.meta.url).href
@@ -19,6 +21,10 @@ const guardWalk2Url = new URL('../assets/enemies/guard_walking/walking_2.png', i
 const guardWalk3Url = new URL('../assets/enemies/guard_walking/walking_3.png', import.meta.url).href
 const guardCollide1Url = new URL('../assets/enemies/guard_collide/collide_1.png', import.meta.url).href
 const guardCollide2Url = new URL('../assets/enemies/guard_collide/collide_2.png', import.meta.url).href
+const breakfastUrl = new URL('../assets/powerup/breakfast.png', import.meta.url).href
+const coffeeUrl = new URL('../assets/powerup/coffee.png', import.meta.url).href
+const exampaperUrl = new URL('../assets/powerup/exampaper.png', import.meta.url).href
+const sleepUrl = new URL('../assets/powerdown/sleep.png', import.meta.url).href
 import Phaser from 'phaser'
 import Player from '../entities/Player.js'
 import Enemy from '../entities/Enemy.js'
@@ -59,7 +65,7 @@ export default class BaseLevel extends Phaser.Scene {
     })
 
     if (this.levelConfig.obstacleUrl) {
-        this.load.image(this.levelConfig.obstacleKey, this.levelConfig.obstacleUrl);
+      this.load.image(this.levelConfig.obstacleKey, this.levelConfig.obstacleUrl);
     }
 
     this.load.image('enemy-clown-walk-1', clownWalk1Url)
@@ -79,6 +85,10 @@ export default class BaseLevel extends Phaser.Scene {
     this.load.image('enemy-security-guard-3', guardWalk3Url)
     this.load.image('enemy-security-guard-collide-1', guardCollide1Url)
     this.load.image('enemy-security-guard-collide-2', guardCollide2Url)
+    this.load.image('powerup-breakfast', breakfastUrl)
+    this.load.image('powerup-coffee', coffeeUrl)
+    this.load.image('powerup-exampaper', exampaperUrl)
+    this.load.image('powerdown-sleep', sleepUrl)
 
     const coinUrls = [coinLevel1, coinLevel2, coinLevel3]
     this.load.image(`coin_${this.levelConfig.number}`, coinUrls[this.levelConfig.number - 1])
@@ -86,6 +96,8 @@ export default class BaseLevel extends Phaser.Scene {
     this.load.audio('bgm', bgmUrl)
     this.load.audio('jump', jumpUrl)
     this.load.audio('collectible', collectibleUrl)
+    this.load.audio('powerup', powerupSoundUrl)
+    this.load.audio('powerdown', powerdownSoundUrl)
     this.load.audio('hit-sound', hitSoundUrl)
   }
 
@@ -128,6 +140,12 @@ export default class BaseLevel extends Phaser.Scene {
     this.coinCount = 0
     this.createCoins()
     this.createCoinHUD()
+
+    this.powerItems = this.physics.add.group()
+    this.createPowerItems()
+
+    this.powerEffect = null
+    this.powerEffectTween = null
   }
 
   update(time, delta) {
@@ -148,6 +166,9 @@ export default class BaseLevel extends Phaser.Scene {
     }
 
     this.player.update()
+    if (this.powerEffect) {
+      this.powerEffect.setPosition(this.player.x, this.player.y)
+    }
     this.updateSceneEnemies(time)
 
     if (this.player.body.top > this.levelHeight + this.scaleLevelValue(120)) {
@@ -174,19 +195,19 @@ export default class BaseLevel extends Phaser.Scene {
 
     const PLATFORM_ASSET_SCALE = 0.2;
     this.levelConfig.platforms.forEach(([x, y, assetKey]) => {
-        const platform = this.platforms.create(
-            this.scaleLevelValue(x),
-            this.scaleLevelValue(y),
-            assetKey
-        );
-        platform.setOrigin(0, 0.5);
-        platform.setScale(this.levelScale * PLATFORM_ASSET_SCALE);
-        platform.refreshBody();
-        platform.setDepth(3);
-        this.platformSprites.push(platform);
+      const platform = this.platforms.create(
+        this.scaleLevelValue(x),
+        this.scaleLevelValue(y),
+        assetKey
+      );
+      platform.setOrigin(0, 0.5);
+      platform.setScale(this.levelScale * PLATFORM_ASSET_SCALE);
+      platform.refreshBody();
+      platform.setDepth(3);
+      this.platformSprites.push(platform);
     });
 
-}
+  }
 
   createFinishLine() {
     const pole = this.add.rectangle(
@@ -234,16 +255,16 @@ export default class BaseLevel extends Phaser.Scene {
 
     const levelScaleFactor = this.levelConfig.hazardScale ?? 1;
     this.levelConfig.hazards.forEach(([x, y]) => {
-        const hazard = new Enemy(
-            this,
-            this.scaleLevelValue(x),
-            this.scaleLevelValue(y),
-            this.levelConfig.obstacleKey,
-            this.levelScale * levelScaleFactor
-        );
-        this.hazards.add(hazard);
+      const hazard = new Enemy(
+        this,
+        this.scaleLevelValue(x),
+        this.scaleLevelValue(y),
+        this.levelConfig.obstacleKey,
+        this.levelScale * levelScaleFactor
+      );
+      this.hazards.add(hazard);
     });
-}
+  }
 
   createSceneEnemies() {
     this.sceneEnemies = this.physics.add.group({
@@ -861,6 +882,303 @@ export default class BaseLevel extends Phaser.Scene {
     })
 
     this.physics.add.overlap(this.player, this.coins, this.collectCoin, null, this)
+  }
+
+  createPowerItems() {
+    const items = [
+      ...(this.levelConfig.powerUps ?? []),
+      ...(this.levelConfig.powerDowns ?? []),
+    ]
+
+    if (items.length === 0) {
+      return
+    }
+
+    const itemSize = this.scaleLevelValue(48)
+    items.forEach((item) => {
+      const textureKey = item.type === 'powerup'
+        ? `powerup-${item.texture}`
+        : `powerdown-${item.texture}`
+
+      const powerItem = this.powerItems.create(
+        this.scaleLevelValue(item.x),
+        this.scaleLevelValue(item.y),
+        textureKey,
+      )
+
+      powerItem.body.setAllowGravity(false)
+      powerItem.setDisplaySize(itemSize, itemSize)
+      powerItem.setDepth(6)
+      powerItem.itemConfig = item
+    })
+
+    this.physics.add.overlap(this.player, this.powerItems, this.collectPowerItem, null, this)
+  }
+
+  collectPowerItem(player, powerItem) {
+    const config = powerItem.itemConfig
+    powerItem.destroy()
+
+    if (config?.type === 'powerup') {
+      this.showPlayerPowerupEffect(config.effect?.duration ?? 3000)
+      player.applySpeedMultiplier(config.effect?.multiplier ?? 1.3, config.effect?.duration ?? 3000, 0xfff7a8)
+    } else if (config?.type === 'powerdown') {
+      this.showPlayerPowerdownEffect(config.effect?.duration ?? 2500)
+      player.applySpeedMultiplier(config.effect?.multiplier ?? 0.5, config.effect?.duration ?? 2500, 0x7fb8ff)
+    } else if (config?.effect) {
+      if (config.effect.type === 'speed') {
+        player.applySpeedMultiplier(config.effect.multiplier ?? 1.3, config.effect.duration ?? 3000)
+      } else if (config.effect.type === 'slow') {
+        player.applySpeedMultiplier(config.effect.multiplier ?? 0.5, config.effect.duration ?? 2500)
+      } else if (config.effect.type === 'stun') {
+        player.stun(config.effect.duration ?? 2000)
+      }
+    }
+
+    if (config?.type === 'powerup') {
+      this.sound.play('powerup', { volume: 0.7 })
+    } else if (config?.type === 'powerdown') {
+      this.sound.play('powerdown', { volume: 0.7 })
+    } else {
+      this.sound.play('collectible', { volume: 0.5 })
+    }
+  }
+
+  showPlayerPowerupEffect(durationMs) {
+    this.clearPlayerPowerEffect()
+
+    const radius = this.scaleLevelValue(80)
+
+    // Outer golden glow
+    const outerGlow = this.add.circle(
+      0,
+      0,
+      radius,
+      0xffd54f,
+      0.22
+    )
+      .setBlendMode(Phaser.BlendModes.ADD)
+
+    // Middle glow
+    const midGlow = this.add.circle(
+      0,
+      0,
+      this.scaleLevelValue(58),
+      0xffeb99,
+      0.3
+    )
+      .setBlendMode(Phaser.BlendModes.ADD)
+
+    // Bright center glow
+    const coreGlow = this.add.circle(
+      0,
+      0,
+      this.scaleLevelValue(28),
+      0xffffff,
+      0.45
+    )
+      .setBlendMode(Phaser.BlendModes.ADD)
+
+    // Floating sparkle particles
+    const spark1 = this.add.circle(
+      -18,
+      -20,
+      this.scaleLevelValue(6),
+      0xffffff,
+      0.95
+    )
+
+    const spark2 = this.add.circle(
+      20,
+      -28,
+      this.scaleLevelValue(5),
+      0xfff3b0,
+      0.9
+    )
+
+    const spark3 = this.add.circle(
+      24,
+      8,
+      this.scaleLevelValue(4),
+      0xffd54f,
+      0.85
+    )
+
+    this.powerEffect = this.add.container(
+      this.player.x,
+      this.player.y,
+      [outerGlow, midGlow, coreGlow, spark1, spark2, spark3]
+    ).setDepth(8)
+
+    // Pulsing glow animation
+    this.powerEffectTween = this.tweens.add({
+      targets: [outerGlow, midGlow, coreGlow],
+      scaleX: 1.18,
+      scaleY: 1.18,
+      alpha: 0.75,
+      duration: 450,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+
+    // Floating spark animation
+    this.tweens.add({
+      targets: [spark1, spark2, spark3],
+      y: '-=8',
+      alpha: 0.4,
+      duration: 700,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+
+    this.time.delayedCall(durationMs, () => this.clearPlayerPowerEffect())
+  }
+
+  // showPlayerPowerdownEffect(durationMs) {
+  //   this.clearPlayerPowerEffect()
+
+  //   const glow = this.add.circle(0, 0, this.scaleLevelValue(64), 0x6ea8ff, 0.18)
+  //     .setBlendMode(Phaser.BlendModes.ADD)
+  //   const bubble1 = this.add.circle(-10, -24, this.scaleLevelValue(8), 0xffffff, 0.85)
+  //   const bubble2 = this.add.circle(12, -34, this.scaleLevelValue(6), 0xa4c9ff, 0.75)
+  //   const bubble3 = this.add.circle(20, -16, this.scaleLevelValue(5), 0xc8dcff, 0.6)
+
+  //   this.powerEffect = this.add.container(this.player.x, this.player.y, [glow, bubble1, bubble2, bubble3]).setDepth(8)
+  //   this.powerEffectTween = this.tweens.add({
+  //     targets: this.powerEffect,
+  //     y: '-=10',
+  //     duration: 900,
+  //     yoyo: true,
+  //     repeat: -1,
+  //     ease: 'Sine.easeInOut',
+  //   })
+
+  //   this.time.delayedCall(durationMs, () => this.clearPlayerPowerEffect())
+  // }
+
+  showPlayerPowerdownEffect(durationMs) {
+    this.clearPlayerPowerEffect()
+
+    // Soft blue sleepy aura
+    const outerGlow = this.add.circle(
+      0,
+      0,
+      this.scaleLevelValue(72),
+      0x6ea8ff,
+      0.16
+    )
+      .setBlendMode(Phaser.BlendModes.ADD)
+
+    // Inner mist glow
+    const innerGlow = this.add.circle(
+      0,
+      0,
+      this.scaleLevelValue(46),
+      0xb7d7ff,
+      0.22
+    )
+      .setBlendMode(Phaser.BlendModes.ADD)
+
+    // Sleepy floating bubbles
+    const bubble1 = this.add.circle(
+      -14,
+      -26,
+      this.scaleLevelValue(8),
+      0xffffff,
+      0.75
+    )
+
+    const bubble2 = this.add.circle(
+      14,
+      -36,
+      this.scaleLevelValue(6),
+      0xa4c9ff,
+      0.7
+    )
+
+    const bubble3 = this.add.circle(
+      24,
+      -18,
+      this.scaleLevelValue(5),
+      0xcfe4ff,
+      0.6
+    )
+
+    // Small sleepy "Z" particles
+    const z1 = this.add.text(
+      -10,
+      -48,
+      'z',
+      {
+        fontSize: `${this.scaleLevelValue(16)}px`,
+        fill: '#d6e8ff',
+        fontStyle: 'italic',
+      }
+    ).setAlpha(0.7)
+
+    const z2 = this.add.text(
+      8,
+      -62,
+      'Z',
+      {
+        fontSize: `${this.scaleLevelValue(20)}px`,
+        fill: '#ffffff',
+        fontStyle: 'italic',
+      }
+    ).setAlpha(0.55)
+
+    this.powerEffect = this.add.container(
+      this.player.x,
+      this.player.y,
+      [outerGlow, innerGlow, bubble1, bubble2, bubble3, z1, z2]
+    ).setDepth(8)
+
+    // Slow floating sleepy motion
+    this.powerEffectTween = this.tweens.add({
+      targets: this.powerEffect,
+      y: '-=12',
+      duration: 1400,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+
+    // Gentle glow pulse
+    this.tweens.add({
+      targets: [outerGlow, innerGlow],
+      scale: 1.08,
+      alpha: 0.3,
+      duration: 1200,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+
+    // Floating Z animation
+    this.tweens.add({
+      targets: [z1, z2],
+      y: '-=12',
+      alpha: 0.2,
+      duration: 1600,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    })
+
+    this.time.delayedCall(durationMs, () => this.clearPlayerPowerEffect())
+  }
+
+  clearPlayerPowerEffect() {
+    if (this.powerEffectTween) {
+      this.powerEffectTween.stop()
+      this.powerEffectTween = null
+    }
+    if (this.powerEffect) {
+      this.powerEffect.destroy()
+      this.powerEffect = null
+    }
   }
 
   collectCoin(player, coin) {

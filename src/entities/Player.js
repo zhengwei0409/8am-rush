@@ -91,13 +91,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  applySpeedMultiplier(multiplier, durationMs) {
+  applySpeedMultiplier(multiplier, durationMs, tint = 0x9fdcff) {
     if (this.effectTimer) {
       this.effectTimer.remove(false)
     }
 
     this.runSpeed = this.baseRunSpeed * multiplier
-    this.setTint(0x9fdcff)
+    this.setTint(tint)
 
     this.effectTimer = this.scene.time.delayedCall(durationMs, () => {
       this.runSpeed = this.baseRunSpeed

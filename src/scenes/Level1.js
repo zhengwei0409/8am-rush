@@ -126,6 +126,43 @@ export default class Level1 extends BaseLevel {
           },
         },
       ],
+      powerUps: [
+        {
+          type: 'powerup',
+          texture: 'coffee',
+          x: 650,
+          y: 460,
+          effect: {
+            type: 'speed',
+            multiplier: 1.35,
+            duration: 3500,
+          },
+        },
+        {
+          type: 'powerup',
+          texture: 'coffee',
+          x: 2700,
+          y: 700,
+          effect: {
+            type: 'speed',
+            multiplier: 1.35,
+            duration: 3500,
+          },
+        },
+      ],
+      powerDowns: [
+        {
+          type: 'powerdown',
+          texture: 'sleep',
+          x: 1335,
+          y: 703,
+          effect: {
+            type: 'slow',
+            multiplier: 0.55,
+            duration: 3000,
+          },
+        },
+      ],
       // coinY = platformY - assetHalfHeight(23) - floatAbove(55)
       coins: [
         // Ground floor
@@ -138,7 +175,7 @@ export default class Level1 extends BaseLevel {
         [5030,853],[5085,853],[5140,853],[5255,853],[5310,853],[5365,853],[5490,853],[5535,853],[5590,853],
         // 1st floor
         [350,703],[405,703],[460,703],
-        [1280,703],[1335,703],[1390,703],[1445,703],
+        [1280,703],[1390,703],[1445,703],
         [2130,703],[2185,703],[2240,703],
         [2530,703],[2585,703],[2640,703],
         [2755,703],[2810,703],[2865,703],
